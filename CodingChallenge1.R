@@ -1,5 +1,5 @@
 ### PLPA 5820 Intro to R
-## In-Class Coding Challenge #1
+## In-Class Coding Challenge #1 :)
 
 # Create a vector 'z' with values 1-200
 z <- c(1:200)
