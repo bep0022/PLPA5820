@@ -37,3 +37,5 @@ zdf180 <- zdf[180, 3]
 View(zdf180)
 
 # Committing and pushing to GitHub
+csv <- read.csv("/Users/brynleighpayne/Downloads/TipsR.csv", na.strings = "na")
+View(csv)

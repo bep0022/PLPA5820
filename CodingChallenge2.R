@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### PLPA 5820 Intro to R
 ## Coding Challenge #2 Data Visualization
 
@@ -82,4 +83,6 @@ ggplot(Myco, aes(x = Treatment, y = DON, fill = Cultivar)) +
   facet_wrap(~Cultivar, scale = "free")
 
 
+=======
+>>>>>>> origin
 
