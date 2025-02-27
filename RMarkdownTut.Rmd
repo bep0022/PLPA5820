@@ -1,0 +1,74 @@
+---
+title: "R Markdown Tutorial"
+author: "Brynleigh Payne"
+date: "2025-02-27"
+output:
+  html_document:
+    toc: true 
+    toc_float: true 
+  md_document:
+    variant: gfm 
+  pdf_document:
+  word_document:
+---
+
+Insert new code chunk (R, bash, python, etc. available)
+This is an example of R code.
+include=FALSE will disregard this code chunk in knit
+```{r setup, include=FALSE}
+# This is R code
+summary(mtcars)
+
+# Other parameters for output control
+#{r chunk_name, ...}
+#Global parameters
+#```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+#```
+```
+Can use R chunk for figures
+```{r}
+data("mtcars")
+library(ggplot2)
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point() 
+  
+```
+
+## R Markdown formatting options
+
+# First level header
+
+example text
+
+## Second level header
+#### style and emphasis
+### Third level header
+
+*This text is italicized* 
+
+**This text is bolded**
+
+- one list item
+- two list items
+  - one subitem
+
+1. ordered list item
+2. another ordered list item
+  - one subitem
+
+## Links
+[Link to my github](https://github.com/bep0022/PLPA5820)
+
+## Images - has to be in the same directory or give the relative file path
+![Anole HHHHH](HHHHH.jpg)
+
+## Formatted Tables
+```{r}
+library(knitr)
+kable(mtcars, digits = 3, format = "markdown")
+```
+
+
+
+
