@@ -1,0 +1,218 @@
+---
+title: "CodingNotes_LinearModels"
+author: "Brynleigh Payne"
+date: "2025-04-03"
+output: 
+  pdf_document:
+  md_document:
+    variant: gfm
+  word_document:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+Load in data
+```{r}
+data("mtcars")
+```
+
+Load packages
+```{r}
+library(ggplot2)
+```
+
+## Continuous X and Y
+Plot data
+```{r}
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_smooth(method = lm, se = FALSE, color = "grey") + # "lm" = linear model
+  geom_point(aes(color = wt)) +
+  xlab("Weight") + 
+  ylab("Miles per gallon") +
+  scale_colour_gradient(low = "forestgreen", high = "black") +
+  theme_classic()
+```
+Run a linear model
+```{r}
+lm(mpg~wt, data = mtcars)
+```
+To get a pvalue from linear model use "summary" function
+```{r}
+summary(lm(mpg~wt, data = mtcars))
+```
+Run ANOVA (multiple categorical variables) on linear model
+```{r}
+anova(lm(mpg~wt, data = mtcars))
+```
+Run correlation analysis 
+```{r}
+cor.test(mtcars$wt, mtcars$mpg)
+```
+All tests gave the same pvalue because they are all basically running a linear regression! Wow!
+
+## Assumptions
+- y is continuous
+- error is normally distributed 
+- relationship is linear 
+- homoskedasticity 
+- sigma is consistent 
+- independent samples
+
+Visualize data to assess for assumptions broken
+```{r}
+model <- lm(mpg~wt, data = mtcars)
+
+ggplot(model, aes(y = .resid, x = .fitted)) +
+  geom_point() +
+  geom_hline(yintercept = 0)
+
+```
+
+## Categorical Variables
+
+Load packages
+```{r}
+library(tidyverse)
+```
+
+Read in data
+```{r}
+bull.rich <- read.csv("Bull_richness.csv")
+```
+
+Filter our dataset to include one treatment and growth stage for demonstration of a t-test
+```{r}
+bull.rich %>%
+  filter(GrowthStage == "V8" & Treatment == "Conv.") %>%
+  ggplot(aes(x = Fungicide, y = richness)) + 
+  geom_boxplot()
+```
+
+Run a t-test
+```{r}
+bull.rich.sub <- bull.rich %>%
+  filter(GrowthStage == "V8" & Treatment == "Conv.")
+
+t.test(richness~Fungicide, data = bull.rich.sub)
+```
+
+We can plug this into our linear model and get the same results. Assuming equal variance in groups and performing a two-sample t-test is the same result as a linear model and ANOVA on the linear model. 
+```{r}
+t.test(richness~Fungicide, data = bull.rich.sub, var.equal = TRUE)
+summary(lm(richness~Fungicide, data = bull.rich.sub))
+anova(lm(richness~Fungicide, data = bull.rich.sub))
+```
+## ANOVA
+
+Load packages
+```{r}
+#install.packages("emmeans")
+library(emmeans)
+library(multcomp)
+#install.packages("multcompView")
+library(multcompView)
+```
+
+Filter our dataset to have only richness in different crop growth stages in the control samples in soybean in conventional management
+```{r}
+bull.rich.sub2 <- bull.rich %>%
+  filter(Fungicide == "C" & Treatment == "Conv." & Crop == "Corn")
+```
+
+Visualize data
+```{r}
+bull.rich.sub2$GrowthStage <- factor(bull.rich.sub2$GrowthStage, levels = c("V6", "V8", "V15"))
+
+ggplot(bull.rich.sub2, aes(x = GrowthStage, y = richness)) +
+  geom_boxplot()
+```
+
+Linear model 
+```{r}
+lm.growth <- lm(richness ~ GrowthStage, data = bull.rich.sub2)
+summary(lm.growth)
+```
+
+ANOVA
+```{r}
+anova(lm.growth)
+summary(aov(richness ~ GrowthStage, data = bull.rich.sub2))
+```
+
+We can do post-hoc tests to find out which groups are different from each other. The simplest way to think of this is individual t-tests across groups.
+```{r}
+lsmeans <- emmeans(lm.growth, ~GrowthStage) # estimate lsmeans of variety within siteXyear
+Results_lsmeans <- cld(lsmeans, alpha = 0.05, reversed = TRUE, details = TRUE) # contrast with Tukey ajustment by default. 
+Results_lsmeans
+
+```
+
+## Interaction Terms
+
+Filter our dataset to include fungicide term
+```{r}
+bull.rich.sub3 <- bull.rich %>%
+  filter(Treatment == "Conv." & Crop == "Corn")
+
+bull.rich.sub3$GrowthStage <- factor(bull.rich.sub3$GrowthStage, levels = c("V6", "V8", "V15"))
+```
+
+Set up our linear model with fungicide interaction factor
+```{r}
+# write it like this with the :
+lm.inter <- lm(richness ~ GrowthStage + Fungicide + GrowthStage:Fungicide, data = bull.rich.sub3)
+
+# or like this with the *
+lm(richness ~ GrowthStage*Fungicide, data = bull.rich.sub3)
+```
+
+ANOVA table
+```{r}
+summary(lm.inter) # significant terms
+anova(lm.inter) # The interaction term is signifant. 
+```
+
+Plot the effect of fungicide over the levels of growthstage
+```{r}
+bull.rich.sub3 %>%
+  ggplot(aes(x = GrowthStage, y = richness, fill = Fungicide)) +
+  geom_boxplot()
+```
+
+Post-hoc test within the levels of growthstage
+```{r}
+lsmeans <- emmeans(lm.inter, ~Fungicide|GrowthStage) # estimate lsmeans of variety within siteXyear
+Results_lsmeans <- cld(lsmeans, alpha = 0.05, reversed = TRUE, details = TRUE) # contrast with Tukey ajustment
+Results_lsmeans
+```
+
+## Mixed Effects Model
+Mixed effects models have both fixed effects and mixed effects. 
+
+Our interaction model from above
+```{r}
+lme0 <- lm(richness ~ GrowthStage*Fungicide, data = bull.rich.sub3)
+```
+
+Load packages
+```{r}
+library(lme4)
+```
+
+Generalized Linear Model
+```{r}
+lme1 <- lmer(richness ~ GrowthStage*Fungicide + (1|Rep), data = bull.rich.sub3)
+summary(lme1)
+```
+
+Look at what it does to our Betas in our original model
+```{r}
+summary(lme0)
+```
+Look at what it does to our Betas in our generalized linear model
+```{r}
+summary(lme1)
+```
+
+[Link to my github](https://github.com/bep0022/PLPA5820)
