@@ -3,9 +3,9 @@ title: "Coding_Challenge7"
 author: "Brynleigh Payne and Anet Filipova"
 date: "2025-04-03"
 output: 
+  pdf_document:
   md_document:
     variant: gfm
-  pdf_document:
   word_document:
   html_document:
     toc: true
@@ -16,7 +16,7 @@ output:
 ```{r}
 # Load in data
 plant <- read.csv("PlantEmergence.csv")
-#View(plant)
+View(plant)
 
 # Load in packages
 library(tidyverse)
